@@ -1,6 +1,6 @@
 # SynAVD
 
-Version: 0.1.5
+Version: 0.2.0
 
 A standalone desktop app for the **Azure Virtual Desktop / Windows App web
 client** on Linux, for when there is no supported native client and the browser
@@ -83,6 +83,10 @@ synavd --help     Show help.
 
 - `master` — stable, release branch
 - `dev` — active development (all work happens here)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## Versioning
 
