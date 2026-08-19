@@ -1,0 +1,19 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Azure Virtual Desktop
+GenericName=Remote Desktop
+Comment=Windows App (AVD web client) in a dedicated window with its own session
+Exec=@BINDIR@/synavd
+Icon=synavd
+Terminal=false
+StartupNotify=true
+StartupWMClass=SynAVD
+Categories=Network;RemoteAccess;
+Keywords=AVD;Azure;Remote;Desktop;Windows;RDP;
+
+Actions=Reset;
+
+[Desktop Action Reset]
+Name=Reset session (sign out)
+Exec=@BINDIR@/synavd --reset
