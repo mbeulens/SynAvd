@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+#
+# synavd — launch the Azure Virtual Desktop / Windows App web client as a
+# standalone Chrome app window with its own isolated browser profile.
+#
+# Why the separate profile: the AVD session cookies live in
+# ~/.local/share/synavd/profile and are untouched by whatever you do in your
+# normal Chrome, so closing (or clearing) your main browser never signs you out.
+
+set -euo pipefail
+
+URL="${SYNAVD_URL:-https://windows.cloud.microsoft/?navFrom=avdweb#/devices}"
+PROFILE="${SYNAVD_PROFILE:-${XDG_DATA_HOME:-$HOME/.local/share}/synavd/profile}"
+WM_CLASS="SynAVD"
+
+find_browser() {
+    if [ -n "${SYNAVD_BROWSER:-}" ]; then
+        command -v "$SYNAVD_BROWSER" && return 0
+    fi
+    for b in google-chrome google-chrome-stable chromium chromium-browser \
+             brave-browser microsoft-edge microsoft-edge-stable; do
+        command -v "$b" && return 0
+    done
+    return 1
+}
+
+usage() {
+    cat <<'USAGE'
+Usage: synavd [OPTION]
+
+  (no option)   Open the AVD web client in its app window.
+  --reset       Delete the isolated profile (signs you out, clears cache).
+  --profile     Print the profile directory path.
+  --help        Show this help.
+
+Environment overrides:
+  SYNAVD_URL       Page to open.
+  SYNAVD_PROFILE   Profile directory.
+  SYNAVD_BROWSER   Browser binary to use.
+USAGE
+}
+
+case "${1:-}" in
+    --help|-h)
+        usage
+        exit 0
+        ;;
+    --profile)
+        echo "$PROFILE"
+        exit 0
+        ;;
+    --reset)
+        if pgrep -f -- "--user-data-dir=$PROFILE" >/dev/null 2>&1; then
+            echo "synavd: the app window is still running — close it first." >&2
+            exit 1
+        fi
+        rm -rf -- "$PROFILE"
+        echo "synavd: profile removed ($PROFILE)"
+        exit 0
+        ;;
+    "")
+        ;;
+    *)
+        echo "synavd: unknown option '$1'" >&2
+        usage >&2
+        exit 2
+        ;;
+esac
+
+BROWSER="$(find_browser)" || {
+    echo "synavd: no Chromium-based browser found. Install Google Chrome, or set SYNAVD_BROWSER." >&2
+    exit 1
+}
+
+mkdir -p -- "$PROFILE"
+
+exec "$BROWSER" \
+    --app="$URL" \
+    --user-data-dir="$PROFILE" \
+    --class="$WM_CLASS" \
+    --name="$WM_CLASS" \
+    --no-first-run \
+    --no-default-browser-check \
+    --disable-features=Translate
